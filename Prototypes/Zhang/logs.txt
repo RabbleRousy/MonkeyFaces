@@ -1,0 +1,14 @@
+2024-07-13 22:53:09.833870: I tensorflow/core/util/port.cc:113] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+training begins!
+0/898Epoch 0| Loss: 2.67973 | Accuracy: 0.327 | time: 18254.455s
+0/898Epoch 1| Loss: 1.28102 | Accuracy: 0.661 | time: 18218.579s
+0/898Epoch 2| Loss: 0.77212 | Accuracy: 0.792 | time: 18324.130s
+0/898Epoch 3| Loss: 0.54716 | Accuracy: 0.851 | time: 18362.830s
+0/898Epoch 4| Loss: 0.41267 | Accuracy: 0.887 | time: 18803.036s
+0/898Epoch 5| Loss: 0.34462 | Accuracy: 0.905 | time: 18325.491s
+0/898Epoch 6| Loss: 0.29163 | Accuracy: 0.919 | time: 18795.385s
+0/898Epoch 7| Loss: 0.26234 | Accuracy: 0.927 | time: 18283.407s
+0/898Epoch 8| Loss: 0.23233 | Accuracy: 0.935 | time: 18552.678s
+0/898Epoch 9| Loss: 0.21098 | Accuracy: 0.941 | time: 18380.814s
+0/898Epoch 10| Loss: 0.19454 | Accuracy: 0.946 | time: 18280.646s
+0/898Epoch 11| Loss: 0.18547 | Accuracy: 0.948 | time: 18503.343s

@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class VGG(nn.Module):
-    def __init__(self, nc, version, batch_size, batch_normalize=False):
+    def __init__(self, nc, version, batch_size, batch_normalize=False, initialize=True):
         super(VGG, self).__init__()
         self.version = version
         self.batch_size = batch_size
@@ -25,8 +25,9 @@ class VGG(nn.Module):
             nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(in_features=4096, out_features=nc))
-            
-        self.init_bias(version)
+        
+        if initialize:
+            self.init_bias(version)
 
     def __build_net(self):
         net = nn.Sequential()
