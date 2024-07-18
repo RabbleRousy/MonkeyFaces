@@ -3,6 +3,9 @@ import cv2
 from torch.utils.data import Dataset, DataLoader
 
 class Monkey_Faces(Dataset):
+    """
+    Label starts from 1.
+    """
     def __init__(self, dataset_path, id_class_mapping, transform=None):
         self.transform = transform
         self.img_paths = []
