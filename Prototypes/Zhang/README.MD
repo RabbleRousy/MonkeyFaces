@@ -18,11 +18,25 @@
 ## exp3
 - vgg 16 on demo dataset (28 categories)
 - Complete metrics
+- Model is influenced by data imbalance dramatically
+- Perform not so good in test dataset
 | | |
 | --- | --- |
-| Loss |  |
-| Accuracy |  |
-| F1-score |  |
+| Loss | 0.088 |
+| Accuracy | 0.970 |
+| F1-score | 0.956 |
 
 ## exp4
 - Implement validation and testing process
+
+
+# Notes
+- Solutions for data imbalance
+  - Sampling methods
+    - Oversampling for the categories have a lot of images 
+    - Undersampling for the categories have less images
+  - Loss
+    - Focal loss
+  - Data augmentation
+  - **Transfer learning**
+  - Use traditional machine learning methods

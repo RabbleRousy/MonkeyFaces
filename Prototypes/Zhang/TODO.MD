@@ -6,10 +6,10 @@
   - [x] Debugging
   - [x] Tuning w/o BN
   - [x] Tuning w/ BN
-- [ ] Train with VGG-19
-  - [ ] Debugging
-  - [ ] Tuning w/ BN
-- [ ] Comparison
+- ~~Train with VGG-19~~
+  - ~~Debugging~~
+  - ~~Tuning w/ BN~~
+- ~~Comparison~~
 
 ## Week 2
 - [x] predict.py
@@ -21,6 +21,7 @@
 - [ ] Dynamic learning scheduler
 - [ ] Validate and test
   - [ ] For each category
+- [ ] Transfer learning
 - [ ] Train on cluster
   - [ ] Distributed torch code
   - [ ] Fix ssh bugs
