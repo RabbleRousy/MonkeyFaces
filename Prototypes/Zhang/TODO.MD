@@ -11,3 +11,16 @@
   - [ ] Tuning w/ BN
 - [ ] Comparison
 
+## Week 2
+- [x] predict.py
+- [x] Implement f1-score
+- [x] Calculate avg. and std. faces
+
+## Week 3
+- [ ] Early stop
+- [ ] Dynamic learning scheduler
+- [ ] Validate and test
+  - [ ] For each category
+- [ ] Train on cluster
+  - [ ] Distributed torch code
+  - [ ] Fix ssh bugs

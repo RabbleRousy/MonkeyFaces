@@ -31,14 +31,17 @@ def train(args):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Resize((args.img_size, args.img_size), antialias=False),
-        transforms.Normalize(mean=args.dataset_mean,      std=args.dataset_std),
+        transforms.Normalize(mean=args.dataset_mean, std=args.dataset_std),
         transforms.RandomCrop(227, padding=0),
     ])
     
     # No validation dataset, split it from train/val dataset
     train_dataset = Monkey_Faces(args.train_path, id_class_mapping={}, transform=transform)
     id_class_mapping = train_dataset.id_class_mapping       # obtain the mapping relationship between class names and ids
-    test_dataset = Monkey_Faces(args.test_path, id_class_mapping=id_class_mapping, transform=transform)
+    test_dataset = Monkey_Faces(args.test_path, id_class_mapping=id_class_mapping, transform=transform, update_mapping=False  )
+    # check the number of class
+    if len(id_class_mapping)!=args.num_class:
+        raise ValueError("The number of labels in training dataset and settings is different: dataset: {} | setting: {}".format(len(id_class_mapping), args.num_class))
     # obtain validation dataset
     if len(train_dataset)>len(test_dataset):        # enough training dataset, split training dataset. Otherwise, split test dataset
         train_dataset, val_dataset = torch.utils.data.random_split(train_dataset, [len(train_dataset)-len(test_dataset), len(test_dataset)])
@@ -131,13 +134,13 @@ def argparser():
     parser.add_argument("--print_step", type=int, default=1, help="print the results after given epochs")
     parser.add_argument("--val_test", action="store_true", help="whether validate or test the model or not")
 
-    parser.add_argument("-es", "--epochs", type=int, default=300, help="the number of training epochs")
-    parser.add_argument("-nc", "--num_class", type=int, default=122, help="the number of category/class")
+    parser.add_argument("-es", "--epochs", type=int, default=20, help="the number of training epochs")
+    parser.add_argument("-nc", "--num_class", type=int, help="the number of category/class")
     parser.add_argument("-bs", "--batch_size", type=int, default=128, help="the number of batch size")
     parser.add_argument("-lr", "--learning_rate", type=float, default=1e-3, help="learning rate")
     parser.add_argument("-sz", "--img_size", type=int, default=256, help="the size of resized image")
     parser.add_argument("-d_mean", "--dataset_mean", type=tuple, default=(0.485, 0.383, 0.394), help="average values of monkey faces")
-    parser.add_argument("-d_std", "--dataset_std", type=tuple, default=(0.051, 0.043, 0.052), help="Values of ImageNet, replacement needed")
+    parser.add_argument("-d_std", "--dataset_std", type=tuple, default=(0.051, 0.043, 0.052), help="standard deviation of monkey faces")
     
 
     parser.parse_args()

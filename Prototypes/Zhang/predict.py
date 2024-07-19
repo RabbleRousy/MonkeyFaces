@@ -10,7 +10,7 @@ from dataset import Monkey_Faces
 ############################# Load model (pre-trained model or models trained from scratch)
 def load_model(model_path, model, optimizer=None):
     model_parameters = torch.load(model_path)
-    model.load_state_dict(model_parameters['fine_model'])
+    model.load_state_dict(model_parameters['final_model'])
     if optimizer:
         optimizer.load_state_dict(model_parameters['optimizer'])
     return model, optimizer
@@ -21,7 +21,8 @@ def load_model(model_path, model, optimizer=None):
 if __name__ == "__main__":
 
     # configurations
-    nc = 122 # /29          # this parameter determines the output layer
+    nc = 28
+    # nc = 122 #              # this parameter determines the output layer
     l_r = 1e-3
     img_size = 227          # we used transforms.RandomCrop(227) while training
     batch_size = 128
@@ -31,10 +32,10 @@ if __name__ == "__main__":
         transforms.Resize((img_size, img_size), antialias=False)
     ])
 
-    test_img_dir = r"E:\ws\MonkeyFace\Prototypes\Zhang\runs"
-    train_dataset_path = r"E:\datasets\monkeys\facedata_yamada\facedata_yamada\train_Magface"
-    model_path = r"E:\ws\MonkeyFace\Prototypes\Zhang\logs\exp1\final_weights\10_0.9462433880846325.pth.tar"
-    
+    test_img_dir = r"E:\ws\MonkeyFace\Prototypes\Zhang\runs\demotest"
+    # train_dataset_path = r"E:\datasets\monkeys\facedata_yamada\facedata_yamada\train_Magface"
+    train_dataset_path = r"E:\datasets\monkeys\demo"
+    model_path = r"E:\ws\MonkeyFace\Prototypes\Zhang\logs\exp3\weights\10_0.9091282894736842.pth.tar"
     # obtain id and class mapping
     train_dataset = Monkey_Faces(train_dataset_path, id_class_mapping={})
     id_class_mapping = train_dataset.id_class_mapping
@@ -45,7 +46,7 @@ if __name__ == "__main__":
     img_tensor = torch.stack(imgs, dim=0)       # transform images to tensors
 
     # define model(required) and optimizer(optional)
-    model = VGG(nc=122, version=16, batch_size=len(imgs), batch_normalize=True, initialize=False)
+    model = VGG(nc=nc, version=16, batch_size=len(imgs), batch_normalize=True, initialize=False)
     # optimizer = torch.optim.Adam(model.parameters(), l_r)
     model, optimizer = load_model(model_path, model, )
     device = "cuda" if torch.cuda.is_available() else "cpu"     # device (cpu/gpu)
@@ -66,7 +67,8 @@ if __name__ == "__main__":
     count = 0   # select images from list
     for row in range(n_rows):
         for col in range(n_cols):
-            axs[row][col].imshow(imgs[count].numpy().transpose([1,2,0]))    # transform image shape from (3,227,227') to (227,227',3)
+            # img = imgs[count].numpy().transpose([1,2,0])
+            axs[row][col].imshow(imgs[count].numpy().transpose([1,2,0])[..., ::-1])    # transform image shape from (3,227,227') to (227,227',3)
             axs[row][col].axis('off')                                       # shut down axis
 
             # simplify sub-figure titles

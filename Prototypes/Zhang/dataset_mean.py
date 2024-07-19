@@ -70,5 +70,5 @@ def cal_dataset(dataset_path, save_img_path=None, new_size=(256, 256)):
 
 if __name__ == "__main__":
     dataset_path = r"E:\datasets\monkeys\facedata_yamada\facedata_yamada\train_Magface"
-    save_img_path = r"E:\ws\MonkeyFace\Prototypes\Zhang\avg_faces"
+    save_img_path = r"E:\ws\MonkeyFace\Prototypes\Zhang\avg_faces"      # save the avg./std. monkey faces
     cal_dataset(dataset_path, save_img_path=save_img_path)
