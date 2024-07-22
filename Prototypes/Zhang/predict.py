@@ -9,6 +9,9 @@ from model import VGG
 from dataset import Monkey_Faces
 ############################# Load model (pre-trained model or models trained from scratch)
 def load_model(model_path, model, optimizer=None):
+    """
+    Load local model parameters
+    """
     model_parameters = torch.load(model_path)
     model.load_state_dict(model_parameters['final_model'])
     if optimizer:
@@ -33,6 +36,7 @@ if __name__ == "__main__":
     ])
 
     test_img_dir = r"E:\ws\MonkeyFace\Prototypes\Zhang\runs\demotest"
+    # test_img_dir = r"E:\ws\MonkeyFace\Prototypes\Zhang\runs\demoset"
     # train_dataset_path = r"E:\datasets\monkeys\facedata_yamada\facedata_yamada\train_Magface"
     train_dataset_path = r"E:\datasets\monkeys\demo"
     model_path = r"E:\ws\MonkeyFace\Prototypes\Zhang\logs\exp3\weights\10_0.9091282894736842.pth.tar"
@@ -63,7 +67,7 @@ if __name__ == "__main__":
     # visualize the results through matplotlib
     n_cols = 5                                      # the number of columns
     n_rows = int(np.ceil(len(img_names)//n_cols))   # the number of rows
-    fig, axs = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(30, 30))   # initialize canvas
+    fig, axs = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(15, 15))   # initialize canvas
     count = 0   # select images from list
     for row in range(n_rows):
         for col in range(n_cols):
@@ -72,11 +76,13 @@ if __name__ == "__main__":
             axs[row][col].axis('off')                                       # shut down axis
 
             # simplify sub-figure titles
-            # ground_truth_name = "'".join(img_names[count].split('x')[3:-1])
-            # if not ground_truth_name:
-            #     ground_truth_name = img_names[count].split('.')[0]
-            # pred_name = results[count]
-            axs[row][col].set_title("G:{}\nP:{}".format(img_names[count][:-4], results[count]))
+            ground_truth_name = "'".join(img_names[count].split('x')[3:-1])
+            if not ground_truth_name:
+                ground_truth_name = img_names[count].split('.')[0]
+            pred_name = results[count]
+
+            # axs[row][col].set_title("T:{}\nP:{}".format(img_names[count][:-4], results[count]))
+            axs[row][col].set_title("T:{}\nP:{}".format(ground_truth_name, results[count]))
             count += 1
 
     plt.tight_layout()

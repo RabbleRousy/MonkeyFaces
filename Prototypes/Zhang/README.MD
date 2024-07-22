@@ -3,7 +3,7 @@
 - `python .\train.py -nc 122 -es 20 -bs 128 -trp path_to_training_dataset`
 ## Train on Selected Dataset
 - Obtain partial dataset: `python utils.py`
-- `python .\train.py -nc 28 -es 20 -bs 128 -trp path_to_partial_training_dataset`
+- `python .\train.py -nc number_of_category/directory -es 20 -bs 128 -trp path_to_partial_training_dataset`
 
 # Predict
 - `python predict.py`
@@ -20,14 +20,19 @@
 - Complete metrics
 - Model is influenced by data imbalance dramatically
 - Perform not so good in test dataset
+
 | | |
 | --- | --- |
 | Loss | 0.088 |
 | Accuracy | 0.970 |
 | F1-score | 0.956 |
+- Visualize the predictions of this model, BAD.
+  - Caused by <font color=red>category imbalance</font>.
+  - The category names start with "Pet" usually have better performance than others.
+  - **Visualize the metrics of each category respectively is necessary**.
 
 ## exp4
-- Implement validation and testing process
+- Implement validation and testing process, and then train on partial dataset.
 
 
 # Notes

@@ -3,6 +3,13 @@ import cv2
 from torch.utils.data import Dataset, DataLoader
 
 class Monkey_Faces(Dataset):
+    """
+    Almost the same with sample code.
+    Differences:
+    >>> Use cv2 to read images
+    >>> Build id_class mapping
+    >>> Different pre-processing methods (torchvision.transforms)
+    """
     def __init__(self, dataset_path, id_class_mapping, transform=None, update_mapping=True):
         self.transform = transform
         self.img_paths = []

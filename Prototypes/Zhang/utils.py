@@ -44,7 +44,7 @@ def save_model(path, model, optimizer, epoch, loss, accu, f1, args):
 
 def copy2dir():
     """
-    Copy directories that meet the requirements to specific path
+    Copy directories(categories) that meet the requirements to specific path
     """
     # load & save paths
     dataset_path = r"E:\datasets\monkeys\facedata_yamada\facedata_yamada\train_Magface"

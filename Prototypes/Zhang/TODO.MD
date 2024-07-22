@@ -19,7 +19,7 @@
 ## Week 3
 - [ ] Early stop
 - [ ] Dynamic learning scheduler
-- [ ] Validate and test
+- [x] Validate and test
   - [ ] For each category
 - [ ] Transfer learning
 - [ ] Train on cluster
