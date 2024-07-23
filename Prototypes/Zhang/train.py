@@ -46,6 +46,7 @@ def forward_one_batch(model, criterion, imgs, labels, device, args):
     _, preds = torch.max(outputs, 1)
 
     # avoid label errors
+    # BUG, leading a small f1 score in validation and test set if using partial training set
     labels[labels>=args.num_class] = 0
 
     # loss
@@ -157,7 +158,7 @@ def train(args):
             print("\rEpoch {}| Loss: {:.5f} | Accuracy: {:.3f} | F1-score: {:.3f} | time: {:.3f}s".format(epoch, train_loss, epoch_accuracy,
                                                                                             batch_f1_score, time.perf_counter()-start_point), end='\n', flush=True)
         # save model, optimizer, metrics and other hyper-parameters after specific epochs
-        if epoch%args.save_step==0 and epoch!=0:
+        if epoch%args.save_step==0:
             weight_save_dir = os.path.join(save_path, "weights")
             utils.save_model(weight_save_dir, model, optimizer, epoch, loss=train_loss, accu=epoch_accuracy,f1=batch_f1_score, args=args)
 
@@ -176,7 +177,7 @@ def train(args):
                     val_f1_score.append(batch_f1_score.detach().cpu().numpy())
                     print("\rValidating... {}/{}".format(batch_index, len(val_loader)), end='', flush=True)
                 val_loss = torch.mean(torch.tensor(val_loss))
-                val_accuracy = val_correct/(len(val_loader)*(batch_index+1))
+                val_accuracy = val_correct/(len(val_loader)*args.batch_size)
                 # writer.add_scalar("loss/epoch_validation", train_loss, global_step=epoch)
                 writer.add_scalars("val_metrics/loss_comparison", {"train_loss": train_loss,
                                                     "validation_loss": val_loss}, global_step=epoch)
@@ -227,7 +228,7 @@ def argparser():
     parser.add_argument("-tep", "--test_path", type=str, default=r"E:\datasets\monkeys\facedata_yamada\facedata_yamada\test_Magface", help="the path of test dataset")
     parser.add_argument("-sp", "--save_path", type=str, default="./logs", help="the path to save files")
 
-    parser.add_argument("--save_step", type=int, default=5, help="save the model to local after given epochs")
+    parser.add_argument("--save_step", type=int, default=2, help="save the model to local after given epochs")
     parser.add_argument("--print_step", type=int, default=1, help="print the results after given epochs")
     parser.add_argument("--val_step", type=int, default=3, help="validate the model after given epochs. Set 0 to ignore validation.")
     # parser.add_argument("--test_flag", action="store_true", help="whether test the model or not")

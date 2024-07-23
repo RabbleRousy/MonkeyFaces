@@ -33,7 +33,11 @@
 
 ## exp4
 - Implement validation and testing process, and then train on partial dataset.
+- The performance is bad because val/test set contains some cetegories not appearing in the partial training set.
+- Skip this exp
 
+## exp5
+- Train VGG on the full dataset
 
 # Notes
 - Solutions for data imbalance
