@@ -10,21 +10,29 @@ class Monkey_Faces(Dataset):
     >>> Build id_class mapping
     >>> Different pre-processing methods (torchvision.transforms)
     """
-    def __init__(self, dataset_path, id_class_mapping, transform=None, update_mapping=True):
+    def __init__(self, dataset_path, class_id_mapping, transform=None, dataset_type="train"):
         self.transform = transform
         self.img_paths = []
         self.labels = []
-        self.id_class_mapping = id_class_mapping 
+        self.class_id_mapping = class_id_mapping 
 
         for label, dir_name in enumerate(sorted(os.listdir(dataset_path))):
             indi_dir = os.path.join(dataset_path, dir_name)
             for img_name in os.listdir(indi_dir):
                 if ".simDB" not in img_name:
+                    if dataset_type=="train":
+                        self.labels.append(label)
+                    elif dataset_type=="test":
+                        if dir_name not in self.class_id_mapping:           # skip unseen category
+                            continue
+                        self.labels.append(self.class_id_mapping[dir_name])
+                    else:
+                        raise ValueError("Wrong dataset type. Please type again.")
                     self.img_paths.append(os.path.join(indi_dir, img_name))
-                    self.labels.append(label)
-            if update_mapping:
-                if label not in self.id_class_mapping:
-                    self.id_class_mapping[label] = dir_name
+            if dataset_type == "train":
+                if dir_name not in self.class_id_mapping:
+                    self.class_id_mapping[dir_name] = label
+                    
 
     def __getitem__(self, index):
         img = cv2.imread(self.img_paths[index])

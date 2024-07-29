@@ -17,11 +17,15 @@
 - [x] Calculate avg. and std. faces
 
 ## Week 3
-- [ ] Early stop
-- [ ] Dynamic learning scheduler
+- [x] Early stop
+- [x] Dynamic learning scheduler
 - [x] Validate and test
-  - [ ] For each category
-- [ ] Transfer learning
+  - [x] For each category
+- ~~Transfer learning~~
 - [ ] Train on cluster
   - [ ] Distributed torch code
   - [ ] Fix ssh bugs
+
+## Week 4
+- [ ] Add args in predict.py
+- [ ] Compare the difference w/ / w/o normalization

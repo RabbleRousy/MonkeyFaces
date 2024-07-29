@@ -1,23 +1,27 @@
 # site packages
 import os
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = '0'
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = '0'   # shut down the warning msgs from tensorboard
 import time
-import utils
 import torch
 import argparse
 import numpy as np
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from torcheval.metrics.functional import multiclass_f1_score
 
 # ignore the warning messages of torcheval caused by calculating f1-score
 from contextlib import contextmanager
 import logging
 
 # custom files
+import utils
 from model import VGG
 from dataset import Monkey_Faces
+from metrics import compute_multiclass_f1_score
+
+############################# Fix the random seeds
+utils.setup_random_seed(42)
+#############################
 
 @contextmanager
 def suppress_warnings():
@@ -55,7 +59,7 @@ def forward_one_batch(model, criterion, imgs, labels, device, args):
     n_correct = (torch.sum(preds == labels)).to('cpu').numpy()
     # f1 score. Ignore the warning messages which pollute the echo
     with suppress_warnings():
-        f1_score = multiclass_f1_score(input=preds, target=labels, 
+        f1_score = compute_multiclass_f1_score(input=preds, target=labels, 
                                         num_classes=args.num_class, average="macro")
     
     ############################# For small gpu memory device
@@ -66,7 +70,6 @@ def forward_one_batch(model, criterion, imgs, labels, device, args):
     #############################
 
     return preds, n_correct, loss, f1_score
-
 
 def train(args):
     """
@@ -82,12 +85,12 @@ def train(args):
     ])
     
     # No validation dataset, split it from train/val dataset
-    train_dataset = Monkey_Faces(args.train_path, id_class_mapping={}, transform=transform)
-    id_class_mapping = train_dataset.id_class_mapping       # obtain the mapping relationship between class names and ids
-    test_dataset = Monkey_Faces(args.test_path, id_class_mapping=id_class_mapping, transform=transform, update_mapping=False  )
+    train_dataset = Monkey_Faces(args.train_path, class_id_mapping={}, transform=transform, dataset_type="train")
+    class_id_mapping = train_dataset.class_id_mapping       # obtain the mapping relationship between class names and ids
+    test_dataset = Monkey_Faces(args.test_path, class_id_mapping=class_id_mapping, transform=transform, dataset_type="test")
     # check the number of class
-    if len(id_class_mapping)!=args.num_class:
-        raise ValueError("The number of labels in training dataset and settings is different: dataset: {} | setting: {}".format(len(id_class_mapping), args.num_class))
+    if len(class_id_mapping)!=args.num_class:
+        raise ValueError("The number of labels in training dataset and settings is different: dataset: {} | setting: {}".format(len(class_id_mapping), args.num_class))
     # obtain validation dataset
     if len(train_dataset)>len(test_dataset):        # enough training dataset, split training dataset. 
         train_dataset, val_dataset = torch.utils.data.random_split(train_dataset, [len(train_dataset)-len(test_dataset), len(test_dataset)])
@@ -112,16 +115,16 @@ def train(args):
     count = 0
     train_loader_length = len(train_loader)
 
+    es_patience_count = 0
+    lr_loss_history = []
+    lr_patience_count = 0
+
     for epoch in range(0, args.epochs):
         model.train()
-        # store metric values for each epoch
-        ############################# Add dict to store category metrics here
+        train_loss = []         # global loss
+        train_f1_score = []     # global f1 score
 
-        #############################
-        train_loss = []
-        train_f1_score = []
-
-        epoch_correct = 0
+        epoch_correct = 0       # global correct number (accu.)
         start_point = time.perf_counter()   # time log
         for batch_index, (imgs, labels) in enumerate(train_loader):
 
@@ -156,11 +159,11 @@ def train(args):
         # print metrics after specific epochs
         if epoch%args.print_step==0:
             print("\rEpoch {}| Loss: {:.5f} | Accuracy: {:.3f} | F1-score: {:.3f} | time: {:.3f}s".format(epoch, train_loss, epoch_accuracy,
-                                                                                            batch_f1_score, time.perf_counter()-start_point), end='\n', flush=True)
+                                                                                            np.average(train_f1_score), time.perf_counter()-start_point), end='\n', flush=True)
         # save model, optimizer, metrics and other hyper-parameters after specific epochs
         if epoch%args.save_step==0:
             weight_save_dir = os.path.join(save_path, "weights")
-            utils.save_model(weight_save_dir, model, optimizer, epoch, loss=train_loss, accu=epoch_accuracy,f1=batch_f1_score, args=args)
+            utils.save_model(weight_save_dir, model, optimizer, epoch, loss=train_loss, accu=epoch_accuracy,f1=np.average(train_f1_score), args=args)
 
         # validate the model
         if epoch%args.val_step==0:
@@ -187,14 +190,24 @@ def train(args):
                                                             "validation_f1": np.average(val_f1_score)}, global_step=epoch)
                 print("\rValidation {} | Loss: {:.5f} | Accuracy: {:.3f} | F1-score: {:.3f}".format(epoch, val_loss, val_accuracy, np.average(val_f1_score)), end='\n', flush=True)
         ############################# Update learning rate here
-        # if satisfy_requirement:
-        #     for group in optimizer.param_groups:
-        #         pass
+        if len(lr_loss_history)<args.lr_step+1:
+            lr_loss_history.append(train_loss)
+        else:
+            sum_loss_diff = sum([lr_loss_history[0]-lr_loss for lr_loss in lr_loss_history[1:]])    # the sum of loss in the list
+            if sum_loss_diff > args.metric_threshold * args.lr_step:        # almost keep in same for epochs
+                for group in optimizer.param_groups:
+                    group["lr"] /= 10   # decrease learning rate
+            lr_loss_history.pop(0)      # maintain list length
         #############################
 
         ############################# Determine early stop or not here
-        # if satisfy_requirement:
-        #     break
+        if torch.abs(val_loss-train_loss) <= 1e-2:
+            es_patience_count += 1
+            if es_patience_count == args.es_patience_step:
+                print("Performance without improvement for epochs, early stop in epoch %d"%epoch)
+                break
+        else:
+            es_patience_count = 0
         #############################
 
     # Test the model
@@ -230,8 +243,12 @@ def argparser():
 
     parser.add_argument("--save_step", type=int, default=2, help="save the model to local after given epochs")
     parser.add_argument("--print_step", type=int, default=1, help="print the results after given epochs")
-    parser.add_argument("--val_step", type=int, default=3, help="validate the model after given epochs. Set 0 to ignore validation.")
-    # parser.add_argument("--test_flag", action="store_true", help="whether test the model or not")
+    parser.add_argument("--val_step", type=int, default=1, help="validate the model after given epochs. Set 0 to ignore validation.")
+    parser.add_argument("--es_patience_step", type=int, default=5, help="stop training after given epochs without metric improvement")
+
+    # Update learning rate
+    parser.add_argument("--metric_threshold", type=float, default=5e-2, help="if loss reduction is less than this number, count plus 1")    
+    parser.add_argument("--lr_step", type=int, default=3, help="decrease learning rate after given epochs without metric improvement")    
 
     parser.add_argument("-es", "--epochs", type=int, default=20, help="the number of training epochs")
     parser.add_argument("-nc", "--num_class", type=int, help="the number of category/class")
