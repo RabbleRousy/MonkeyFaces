@@ -32,6 +32,9 @@ class Monkey_Faces(Dataset):
             if dataset_type == "train":
                 if dir_name not in self.class_id_mapping:
                     self.class_id_mapping[dir_name] = label
+        if len(self.labels) != len(self.img_paths):
+            print("Length: label: {} | images: {}".format(len(self.labels), len(self.img_paths)))
+            raise ValueError("# of labels != # of images, please check the dataset")
                     
 
     def __getitem__(self, index):

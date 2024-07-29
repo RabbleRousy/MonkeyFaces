@@ -92,7 +92,7 @@ def train(args):
     if len(class_id_mapping)!=args.num_class:
         raise ValueError("The number of labels in training dataset and settings is different: dataset: {} | setting: {}".format(len(class_id_mapping), args.num_class))
     # obtain validation dataset
-    if len(train_dataset)>len(test_dataset):        # enough training dataset, split training dataset. 
+    if args.num_class==122 and len(train_dataset)>len(test_dataset):        # enough training dataset, split training dataset. 
         train_dataset, val_dataset = torch.utils.data.random_split(train_dataset, [len(train_dataset)-len(test_dataset), len(test_dataset)])
     else:                                           # Otherwise, split test dataset
         val_dataset, test_dataset = torch.utils.data.random_split(test_dataset, [len(test_dataset)-int(len(test_dataset)*0.5), int(len(test_dataset)*0.5)])
@@ -117,7 +117,6 @@ def train(args):
 
     es_patience_count = 0
     lr_loss_history = []
-    lr_patience_count = 0
 
     for epoch in range(0, args.epochs):
         model.train()
@@ -166,7 +165,7 @@ def train(args):
             utils.save_model(weight_save_dir, model, optimizer, epoch, loss=train_loss, accu=epoch_accuracy,f1=np.average(train_f1_score), args=args)
 
         # validate the model
-        if epoch%args.val_step==0:
+        if args.num_class==122 and epoch%args.val_step==0:
             with torch.no_grad():
                 model.eval()
                 val_loss = []
@@ -194,45 +193,48 @@ def train(args):
             lr_loss_history.append(train_loss)
         else:
             sum_loss_diff = sum([lr_loss_history[0]-lr_loss for lr_loss in lr_loss_history[1:]])    # the sum of loss in the list
-            if sum_loss_diff > args.metric_threshold * args.lr_step:        # almost keep in same for epochs
+            if sum_loss_diff < args.metric_threshold * args.lr_step:        # almost keep in same for epochs
                 for group in optimizer.param_groups:
                     group["lr"] /= 10   # decrease learning rate
+                    print("learning rate updated")
             lr_loss_history.pop(0)      # maintain list length
         #############################
 
         ############################# Determine early stop or not here
-        if torch.abs(val_loss-train_loss) <= 1e-2:
-            es_patience_count += 1
-            if es_patience_count == args.es_patience_step:
-                print("Performance without improvement for epochs, early stop in epoch %d"%epoch)
-                break
-        else:
-            es_patience_count = 0
+        if args.num_class==122:
+            if torch.abs(val_loss-train_loss) <= 1e-2:
+                es_patience_count += 1
+                if es_patience_count == args.es_patience_step:
+                    print("Performance without improvement for epochs, early stop in epoch %d"%epoch)
+                    break
+            else:
+                es_patience_count = 0
         #############################
 
     # Test the model
-    with torch.no_grad():
-        print("Testing: ")
-        model.eval()
-        test_loss = []
-        test_f1_score = []
-        test_correct = 0
-        for batch_index, (imgs, labels) in enumerate(test_loader):
-            preds, n_correct, batch_loss, batch_f1_score = forward_one_batch(model, criterion, imgs, labels,
-                                                                            device, args)
-            test_correct += n_correct
-            test_loss.append(batch_loss.detach())
-            test_f1_score.append(batch_f1_score.detach().cpu().numpy())
-        test_loss = torch.mean(torch.tensor(test_loss))
-        test_accuracy = test_correct/(len(test_loader)*(batch_index+1))
-        # train and val: use the latest epoch results
-        writer.add_scalars("test_metrics/loss_comparison", {"train_loss": train_loss, "validation_loss": val_loss,
-                                                    "test_loss": test_loss}, global_step=epoch)
-        writer.add_scalars("test_metrics/accuracy_comparison", {"train_accuracy": epoch_accuracy, "val_accuracy": val_accuracy,
-                                                        "test_accuracy": test_accuracy} , global_step=epoch)
-        writer.add_scalars("test_metrics/f1_comparison", {"train_f1": np.average(train_f1_score), "validation_f1": np.average(val_f1_score),
-                                                    "test_f1": np.average(test_f1_score)}, global_step=epoch)
-        print("Tests | Loss: {:.5f} | Accuracy: {:.3f} | F1-score: {:.3f}".format(test_loss, test_accuracy, np.average(test_f1_score)))
+    if args.num_class==122:
+        with torch.no_grad():
+            print("Testing: ")
+            model.eval()
+            test_loss = []
+            test_f1_score = []
+            test_correct = 0
+            for batch_index, (imgs, labels) in enumerate(test_loader):
+                preds, n_correct, batch_loss, batch_f1_score = forward_one_batch(model, criterion, imgs, labels,
+                                                                                device, args)
+                test_correct += n_correct
+                test_loss.append(batch_loss.detach())
+                test_f1_score.append(batch_f1_score.detach().cpu().numpy())
+            test_loss = torch.mean(torch.tensor(test_loss))
+            test_accuracy = test_correct/(len(test_loader)*(batch_index+1))
+            # train and val: use the latest epoch results
+            writer.add_scalars("test_metrics/loss_comparison", {"train_loss": train_loss, "validation_loss": val_loss,
+                                                        "test_loss": test_loss}, global_step=epoch)
+            writer.add_scalars("test_metrics/accuracy_comparison", {"train_accuracy": epoch_accuracy, "val_accuracy": val_accuracy,
+                                                            "test_accuracy": test_accuracy} , global_step=epoch)
+            writer.add_scalars("test_metrics/f1_comparison", {"train_f1": np.average(train_f1_score), "validation_f1": np.average(val_f1_score),
+                                                        "test_f1": np.average(test_f1_score)}, global_step=epoch)
+            print("Tests | Loss: {:.5f} | Accuracy: {:.3f} | F1-score: {:.3f}".format(test_loss, test_accuracy, np.average(test_f1_score)))
 
 def argparser():
     parser = argparse.ArgumentParser(description="configurations for training")
