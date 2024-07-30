@@ -61,6 +61,22 @@ def load_model(model_path, model, optimizer=None):
         optimizer.load_state_dict(model_parameters['optimizer'])
     return model, optimizer
 
+def save_tensor(path, tensor):
+    results = dict()
+    # for epoch, matrix in enumerate(tensor):
+    #     results[epoch] = matrix
+    results["matrix"] = tensor
+    torch.save(results, path)
+
+def load_tensor(path):
+    return torch.load(path)
+
+def save2txt(file_path, content):
+    with open(file_path, 'w', encoding='utf-8') as fp:
+        if not isinstance(content, str):
+            content = str(content)
+        fp.write(content)
+
 def copy2dir():
     """
     Copy directories(categories) that meet the requirements to specific path

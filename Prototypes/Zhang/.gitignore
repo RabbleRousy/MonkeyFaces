@@ -2,3 +2,5 @@
 /demo.py
 /avg_faces
 /runs
+/__pycache__
+/visualize.py

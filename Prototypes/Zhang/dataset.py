@@ -58,7 +58,6 @@ def load_dataset(args):
         transforms.Normalize(mean=args.dataset_mean, std=args.dataset_std),
         transforms.RandomCrop(227, padding=0),
     ])
-    
     # No validation dataset, split it from train/val dataset
     train_dataset = Monkey_Faces(args.train_path, class_id_mapping={}, transform=transform, dataset_type="train")
     class_id_mapping = train_dataset.class_id_mapping       # obtain the mapping relationship between class names and ids
@@ -67,9 +66,8 @@ def load_dataset(args):
     if len(class_id_mapping)!=args.num_class:
         raise ValueError("The number of labels in training dataset and settings is different: dataset: {} | setting: {}".format(len(class_id_mapping), args.num_class))
     # obtain validation dataset
-    if args.num_class==122 and len(train_dataset)>len(test_dataset):        # enough training dataset, split training dataset. 
-        train_dataset, val_dataset = torch.utils.data.random_split(train_dataset, [len(train_dataset)-len(test_dataset), len(test_dataset)])
-    else:                                           # Otherwise, split test dataset
+    val_dataset = []
+    if args.val:
         val_dataset, test_dataset = torch.utils.data.random_split(test_dataset, [len(test_dataset)-int(len(test_dataset)*0.5), int(len(test_dataset)*0.5)])
 
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, drop_last=True)

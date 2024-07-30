@@ -1,12 +1,16 @@
 # Train
 ## Train on Full Dataset
-- `python .\train.py -nc 122 -es 20 -bs 128 -trp path_to_training_dataset`
+- `python .\train.py -nc 122 -es 20 -bs 128 -trp path_to_training_dataset --train --val --test`
 ## Train on Selected Dataset
 - Obtain partial dataset: `python utils.py`
-- `python .\train.py -nc number_of_category/directory -es 20 -bs 128 -trp path_to_partial_training_dataset`
+- `python .\train.py -nc number_of_category/directory -es 20 -bs 128 -trp path_to_partial_training_dataset --train`
 
 # Predict
-- `python predict.py`
+- Method 1: `python predict.py`
+- Method 2: `python .\train.py -nc 122 -es 20 -bs 128 -tep path_to_test_dataset --test`
+
+# Load with pre-trained model
+- `python train.py -nc 122 -bs 128 -tep E:\datasets\monkeys\facedata_yamada\facedata_yamada\test_Magface --checkpoint E:\ws\MonkeyFace\Prototypes\Zhang\logs\exp5\weights\12_0.9711587778429074.pth.tar --train --test `
 
 # Training Logs
 ## exp1
