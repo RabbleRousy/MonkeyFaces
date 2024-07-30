@@ -8,23 +8,12 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 
 from model import VGG
-from train import forward_one_batch
+from utils import load_model
 from dataset import Monkey_Faces
+from train import forward_one_batch
 from metrics import compute_confusion_matrix, compute_precision_recall_f1
-############################# Load model (pre-trained model or models trained from scratch)
-def load_model(model_path, model, optimizer=None):
-    """
-    Load local model parameters
-    """
-    model_parameters = torch.load(model_path)
-    model.load_state_dict(model_parameters['final_model'])
-    if optimizer:
-        optimizer.load_state_dict(model_parameters['optimizer'])
-    return model, optimizer
-############################# Load model
 
 
-############################# Predict
 if __name__ == "__main__":
 
     # configurations

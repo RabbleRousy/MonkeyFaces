@@ -51,6 +51,16 @@ def save_model(path, model, optimizer, epoch, loss, accu, f1, args):
         print(e)
         return False
 
+def load_model(model_path, model, optimizer=None):
+    """
+    Load local model parameters
+    """
+    model_parameters = torch.load(model_path)
+    model.load_state_dict(model_parameters['final_model'])
+    if optimizer:
+        optimizer.load_state_dict(model_parameters['optimizer'])
+    return model, optimizer
+
 def copy2dir():
     """
     Copy directories(categories) that meet the requirements to specific path

@@ -1,15 +1,11 @@
 import torch
-import numpy as np
 from torcheval.metrics.functional import multiclass_f1_score
-
 
 def compute_confusion_matrix(class_num_count, preds, labels, n_category:int):
     """
     Calculate the metrics for each category.
     """
-    # class_num_count = [[0, 0, 0] for _ in range(n_category)]   # TP, FP, FN
-    # class_metrics = [[0., 0., 0.] for _ in range(n_category)]       # precision, recall, F1-score
-    # count the number for each category
+    # count the number of TP, FP and FN for each category
     for category in range(n_category):
         n_TP = torch.count_nonzero(preds==labels)
         n_FP = max(0, torch.count_nonzero(labels==category)-n_TP)
@@ -19,7 +15,6 @@ def compute_confusion_matrix(class_num_count, preds, labels, n_category:int):
         class_num_count[category][2] += n_FN
 
     return class_num_count
-
 
 def compute_precision_recall_f1(TP, FP, FN):
     """
