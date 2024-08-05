@@ -17,7 +17,8 @@ class Monkey_Faces(Dataset):
         self.transform = transform
         self.img_paths = []
         self.labels = []
-        self.class_id_mapping = class_id_mapping 
+        self.class_id_mapping = class_id_mapping
+        self.true_class_id = {}
 
         for label, dir_name in enumerate(sorted(os.listdir(dataset_path))):
             indi_dir = os.path.join(dataset_path, dir_name)
@@ -35,6 +36,9 @@ class Monkey_Faces(Dataset):
             if dataset_type == "train":
                 if dir_name not in self.class_id_mapping:
                     self.class_id_mapping[dir_name] = label
+            if dataset_type != "train":
+                if dir_name not in self.true_class_id:
+                    self.true_class_id[dir_name] = self.class_id_mapping[dir_name]
         if len(self.labels) != len(self.img_paths):     # labels and images should have the same number
             print("Length: label: {} | images: {}".format(len(self.labels), len(self.img_paths)))
             raise ValueError("# of labels != # of images, please check the dataset")
@@ -72,19 +76,24 @@ def load_dataset(args):
 
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, drop_last=True)
     val_loader   = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=True, drop_last=True) if args.val else []
-    test_loader  = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=True, drop_last=True) if args.test else []
+    test_loader  = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=True, drop_last=False) if args.test else []
                                             
     print("train set length: {} | val set length: {} | test set length: {}".format(len(train_dataset), len(val_dataset), len(test_dataset)))
 
     return train_loader, val_loader, test_loader
 
+def count_images_num(root):
+    dirs = sorted(os.listdir(root)) 
+    count = {}
+    dirname_index = {}
+    for index, dir in enumerate(dirs):
+        count[dir] = len(os.listdir(os.path.join(root, dir)))
+        temp_dir = dir.split("'")[0]
+        if temp_dir not in dirname_index:
+            dirname_index[temp_dir] = index
+    return count, dirname_index
+
 if __name__ == "__main__":
-    root_dir = r"E:\datasets\monkeys\demo"
-    dataset = Monkey_Faces(root_dir)
-    dataset_loader = DataLoader(dataset)
-    count = 0
-    for item in dataset_loader:
-        print(item)
-        count += 1
-        if count ==5:
-            break
+    root = r"E:\datasets\monkeys\facedata_yamada\facedata_yamada\train_Magface"
+    count, _ = count_images_num(root)
+    print(count)

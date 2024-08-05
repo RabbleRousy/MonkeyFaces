@@ -60,7 +60,6 @@ def forward_one_batch(model, criterion, imgs, labels, device, args):
     with suppress_warnings():
         f1_score = compute_multiclass_f1_score(input=preds, target=labels, 
                                         num_classes=args.num_class, average="macro")
-    
     ############################# For small gpu memory device
     # If you have enough gpu memory, please comment this code
     # del imgs
@@ -255,9 +254,10 @@ if __name__ == "__main__":
         test(args, model, criterion, device, writer, test_category_metric_logger, test_loader, metrics)
     print("Finished")
 
-    
-    save2txt(os.path.join(args.save_path, "train.txt"), train_category_metric_logger.category_metrics)
-    save2txt(os.path.join(args.save_path, "train_count.txt"), train_category_metric_logger.category_statics)
-    save2txt(os.path.join(args.save_path, "test.txt"), test_category_metric_logger.category_metrics)
-    save_tensor(os.path.join(args.save_path, "train_results.pth"), train_category_metric_logger.category_metrics)
-    save_tensor(os.path.join(args.save_path, "test_results.pth"), test_category_metric_logger.category_metrics)
+    if args.train:
+        save2txt(os.path.join(args.save_path, "train.txt"), train_category_metric_logger.category_metrics)
+        save2txt(os.path.join(args.save_path, "train_count.txt"), train_category_metric_logger.category_statics)
+        save_tensor(os.path.join(args.save_path, "train_results.pth"), train_category_metric_logger.category_metrics)
+    if args.test:
+        save2txt(os.path.join(args.save_path, "test.txt"), test_category_metric_logger.category_metrics)
+        save_tensor(os.path.join(args.save_path, "test_results.pth"), test_category_metric_logger.category_metrics)

@@ -63,8 +63,8 @@ def load_model(model_path, model, optimizer=None):
 
 def save_tensor(path, tensor):
     results = dict()
-    # for epoch, matrix in enumerate(tensor):
-    #     results[epoch] = matrix
+    if len(tensor.shape) == 2:
+        tensor = tensor[None, ...]
     results["matrix"] = tensor
     torch.save(results, path)
 
@@ -83,19 +83,19 @@ def copy2dir():
     """
     # load & save paths
     dataset_path = r"E:\datasets\monkeys\facedata_yamada\facedata_yamada\train_Magface"
-    save_path_root = r"E:\datasets\monkeys\demo"
+    save_path_root = r"E:\datasets\monkeys\partial_train_v2"
     # dirs of all monkeys
     dirs = os.listdir(dataset_path)
 
     # the number of images under each individual
-    threshold = 200
+    threshold = 2800
     for index, dir in enumerate(dirs):
         # dir of each monkey
         dir_path = os.path.join(dataset_path, dir)
         # the number of images in each individual file
         n_imgs = len(os.listdir(dir_path))
         # meet requirement, copy to destination
-        if n_imgs<threshold and n_imgs!=0:
+        if n_imgs>threshold and n_imgs!=0:
             save_path = os.path.join(save_path_root, dir)
             # if destination dir does not exist, mkdir
             if not os.path.exists(save_path):

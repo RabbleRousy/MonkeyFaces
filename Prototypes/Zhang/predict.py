@@ -10,9 +10,8 @@ from torch.utils.data import DataLoader
 from model import VGG
 from utils import load_model
 from dataset import Monkey_Faces
-from train import forward_one_batch
-from metrics import compute_confusion_matrix, compute_precision_recall_f1
-
+from metrics import MetricLogger
+from train import test
 
 if __name__ == "__main__":
 
@@ -39,8 +38,10 @@ if __name__ == "__main__":
     class_id_mapping = train_dataset.class_id_mapping
 
     test_dataset = None
+    test_true_class_id = None
     if "demo" not in test_img_dir:
         test_dataset = Monkey_Faces(test_img_dir, class_id_mapping=class_id_mapping, transform=transform, dataset_type="test")
+        test_true_class_id = test_dataset.true_class_id
 
     if not test_dataset:
         # load data
@@ -90,39 +91,15 @@ if __name__ == "__main__":
         plt.tight_layout()
         plt.show()
 
-    else:
+    else: 
         test_loader = DataLoader(test_dataset, batch_sampler=batch_size, shuffle=True, drop_last=True)
         device = "cuda" if torch.cuda.is_available() else "cpu"
         model = VGG(nc=nc, version=16, batch_size=batch_size, batch_normalize=True, initialize=False)
         model, optimizer = load_model(model_path, model, )
         model = model.to(device)
 
-        class_num_count = [[0, 0, 0] for _ in range(nc)]   # TP, FP, FN
-        class_metrics = []       # precision, recall, F1-score
+        test_category_metric_logger = MetricLogger(len(test_true_class_id))
+        
         with torch.no_grad():
             model.eval()
-            test_loss = []
-            test_f1_score = []
-            test_correct = 0
-            for batch_index, (imgs, labels) in enumerate(test_loader):
-                preds, n_correct, batch_loss, batch_f1_score = forward_one_batch(model, criterion, imgs, labels,
-                                                                                device, args)
-                test_correct += n_correct
-                test_loss.append(batch_loss.detach())
-                test_f1_score.append(batch_f1_score.detach().cpu().numpy())
-
-                # compute confusion matrix for each category
-                class_num_count = compute_confusion_matrix(class_num_count, preds, labels, nc)
             
-            test_loss = torch.mean(torch.tensor(test_loss))
-            test_accuracy = test_correct/(len(test_loader)*(batch_index+1))
-
-        for index in range(len(class_num_count)):
-            class_metrics.append(compute_precision_recall_f1(class_num_count[index][0], class_num_count[index][1], 
-                                                             class_num_count[index][2]))
-
-        # print the results
-        for index in range(len(class_metrics)):
-            print("Category {} | Precision: {:.3f} | Recall: {:.3f} \
-                  | F1-score: {:.3f}".format(index, class_metrics[index][0], 
-                                             class_metrics[index][1], class_metrics[index][2]))
